@@ -84,14 +84,18 @@ class SemaphoreClient
   end
 
   def branch_info(branch)
-    finished_at = branch['finished_at']
-    info = branch['branch_name'].to_s + " :: " + branch['result'].to_s + " (" + branch['build_number'].to_s + ")\e[0m :: " + calculate_time(finished_at)
-    if branch['result'] == 'passed'
-      green(info)
-    elsif branch['result'] == 'failed'
-      red(info)
-    else
-      blue(info)
+    finished_at   = branch["finished_at"]
+    branch_name   = branch["branch_name"]
+    branch_result = branch["result"]
+    build_number  = branch["build_number"]
+    build_time    = calculate_time(finished_at)
+
+    info = "#{branch_name} :: #{branch_result} (#{build_number}) :: #{build_time}"
+
+    case branch_result
+    when "passed" then green(info)
+    when "failed" then red(info)
+    else blue(info)
     end
   end
 
