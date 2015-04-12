@@ -11,14 +11,14 @@ class SemaphoreClient
   API_URL = 'https://semaphoreapp.com/api/v1/projects?auth_token='
 
   def initialize(token)
-      response = open(API_URL+token).read
-      @json_response = JSON.parse(response)
+    response = open(API_URL+token).read
+    @json_response = JSON.parse(response)
   end
 
   def tree(query = nil)
     if query
       projects = search(query)
-      if  projects.empty?
+      if projects.empty?
         puts 'This git repository is not on Semaphore.'
         self.tree
         return
@@ -45,7 +45,7 @@ class SemaphoreClient
   private
 
   def search(query)
-    @json_response.select{|project| project['name'] == query}
+    @json_response.select { |project| project['name'] == query }
   end
 
   def print_project(project, order = 'first')
@@ -71,7 +71,7 @@ class SemaphoreClient
     end
   end
 
-  def print_branch(branch, order = 'first' )
+  def print_branch(branch, order = 'first')
     if order == 'last'
       print "└── "
     else
@@ -93,7 +93,7 @@ class SemaphoreClient
   end
 
   def colorize(text, color_code)
-    "#{color_code}#{text}\033[0m"
+    "#{color_code}#{text}\e[0m"
   end
 
   def red(text); colorize(text, "\e[0;31m"); end
