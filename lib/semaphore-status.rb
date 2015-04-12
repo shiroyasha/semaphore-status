@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
-require_relative 'semaphore-status/version'
-require 'open-uri'
-require 'json'
-require 'time'
+require "rubygems"
+require "bundler"
 
+Bundler.setup
+
+require_relative "semaphore-status/version"
+require "open-uri"
+require "json"
+require "time"
+require "colorize"
 
 class SemaphoreClient
 
@@ -53,10 +58,10 @@ class SemaphoreClient
 
   def print_project(project, order = 'first')
     if order == 'last'
-      puts "└── #{yellow project['name']}"
+      puts "└── #{project["name"].yellow}"
       print_branches(project['branches'],'last')
     else
-      puts "├── #{yellow project['name']}"
+      puts "├── #{project["name"].yellow}"
       print_branches(project['branches'])
     end
   end
@@ -90,23 +95,16 @@ class SemaphoreClient
     build_number  = branch["build_number"]
     build_time    = calculate_time(finished_at)
 
-    info = "#{branch_name} :: #{branch_result} (#{build_number}) :: #{build_time}"
+    info = "#{branch_name} :: #{branch_result} (#{build_number})"
 
-    case branch_result
-    when "passed" then green(info)
-    when "failed" then red(info)
-    else blue(info)
-    end
+    colorized_info = case branch_result
+                     when "passed" then info.green
+                     when "failed" then info.red
+                     else info.blue
+                     end
+
+    "#{colorized_info} :: #{build_time}"
   end
-
-  def colorize(text, color_code)
-    "#{color_code}#{text}\e[0m"
-  end
-
-  def red(text); colorize(text, "\e[0;31m"); end
-  def green(text); colorize(text, "\e[0;32m"); end
-  def blue(text); colorize(text, "\e[0;34m"); end
-  def yellow(text); colorize(text, "\e[0;33m"); end
 
   def calculate_time(finished)
     if finished
