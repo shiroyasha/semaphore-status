@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'semaphore-status/version'
+require_relative 'semaphore-status/version'
 require 'open-uri'
 require 'json'
 require 'time'
@@ -31,7 +31,7 @@ class SemaphoreClient
       puts 'Your projects on Semaphore:'
     else
       puts "Displaying #{projects.size} of #{@json_response.size} projects:"
-    end  
+    end
 
     projects.each_with_index do |project, index|
       if index+1 == projects.size
