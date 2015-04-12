@@ -58,7 +58,7 @@ if ARGV.index('-h') or ARGV.index('--help')
   exit
 end
 
-require "semaphore-status"
+require_relative "../lib/semaphore-status"
 
 def get_projects(query = nil, interactive = false)
   sst = SemaphoreClient.new(ENV['SEMAPHORE_API_KEY'])

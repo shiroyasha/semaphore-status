@@ -1,24 +1,32 @@
 # -*- coding: utf-8 -*-
 
-require 'semaphore-status/version'
-require 'open-uri'
-require 'json'
-require 'time'
+require "rubygems"
+require "bundler"
 
+Bundler.setup
+
+require_relative "semaphore-status/version"
+require "open-uri"
+require "json"
+require "time"
+require "colorize"
 
 class SemaphoreClient
 
-  API_URL = 'https://semaphoreapp.com/api/v1/projects?auth_token='
+  API_HOST = "https://semaphoreci.com"
+  API_URL  = "/api/v1/projects"
 
   def initialize(token)
-      response = open(API_URL+token).read
-      @json_response = JSON.parse(response)
+    url = "#{API_HOST}#{API_URL}?auth_token=#{token}"
+
+    response = open(url).read
+    @json_response = JSON.parse(response)
   end
 
   def tree(query = nil)
     if query
       projects = search(query)
-      if  projects.empty?
+      if projects.empty?
         puts 'This git repository is not on Semaphore.'
         self.tree
         return
@@ -31,7 +39,7 @@ class SemaphoreClient
       puts 'Your projects on Semaphore:'
     else
       puts "Displaying #{projects.size} of #{@json_response.size} projects:"
-    end  
+    end
 
     projects.each_with_index do |project, index|
       if index+1 == projects.size
@@ -45,15 +53,15 @@ class SemaphoreClient
   private
 
   def search(query)
-    @json_response.select{|project| project['name'] == query}
+    @json_response.select { |project| project['name'] == query }
   end
 
   def print_project(project, order = 'first')
     if order == 'last'
-      puts "└── #{yellow project['name']}"
+      puts "└── #{project["name"].yellow}"
       print_branches(project['branches'],'last')
     else
-      puts "├── #{yellow project['name']}"
+      puts "├── #{project["name"].yellow}"
       print_branches(project['branches'])
     end
   end
@@ -71,7 +79,7 @@ class SemaphoreClient
     end
   end
 
-  def print_branch(branch, order = 'first' )
+  def print_branch(branch, order = 'first')
     if order == 'last'
       print "└── "
     else
@@ -81,25 +89,22 @@ class SemaphoreClient
   end
 
   def branch_info(branch)
-    finished_at = branch['finished_at']
-    info = branch['branch_name'].to_s + " :: " + branch['result'].to_s + " (" + branch['build_number'].to_s + ")\e[0m :: " + calculate_time(finished_at)
-    if branch['result'] == 'passed'
-      green(info)
-    elsif branch['result'] == 'failed'
-      red(info)
-    else
-      blue(info)
-    end
-  end
+    finished_at   = branch["finished_at"]
+    branch_name   = branch["branch_name"]
+    branch_result = branch["result"]
+    build_number  = branch["build_number"]
+    build_time    = calculate_time(finished_at)
 
-  def colorize(text, color_code)
-    "#{color_code}#{text}\033[0m"
-  end
+    info = "#{branch_name} :: #{branch_result} (#{build_number})"
 
-  def red(text); colorize(text, "\e[0;31m"); end
-  def green(text); colorize(text, "\e[0;32m"); end
-  def blue(text); colorize(text, "\e[0;34m"); end
-  def yellow(text); colorize(text, "\e[0;33m"); end
+    colorized_info = case branch_result
+                     when "passed" then info.green
+                     when "failed" then info.red
+                     else info.blue
+                     end
+
+    "#{colorized_info} :: #{build_time}"
+  end
 
   def calculate_time(finished)
     if finished
